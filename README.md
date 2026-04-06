@@ -14,13 +14,13 @@ A lightweight, robust Windows-native security application designed to monitor an
 
 ## 📸 Screenshots
 
-*(Replace the links below with actual screenshots of your application once uploaded to your repo)*
+
 
 > (assets/active_block_list.png)
-> *The Active Blocks tab showing monitored domains.*
+The Active Blocks tab showing monitored domains
 
 > (assets/settings.png)
-> *The Settings tab for administrative control.*
+> The Settings tab for administrative control.
 
 -----
 
