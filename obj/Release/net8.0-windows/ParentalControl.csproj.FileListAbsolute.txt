@@ -1,0 +1,72 @@
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfoInputs.cache
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfo.cs
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.CoreCompileInputs.cache
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\ParentalControl.exe
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\ParentalControl.deps.json
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\ParentalControl.runtimeconfig.json
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\ParentalControl.dll
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\ParentalControl.pdb
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\System.ServiceProcess.ServiceController.dll
+C:\Users\EDWIN-PC\Music\files (1)\bin\Release\net8.0-windows\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.AssemblyReference.cache
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\Parental.97795D9A.Up2Date
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.dll
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\refint\ParentalControl.dll
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.pdb
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ParentalControl.genruntimeconfig.cache
+C:\Users\EDWIN-PC\Music\files (1)\obj\Release\net8.0-windows\ref\ParentalControl.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\ParentalControl.exe
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\ParentalControl.deps.json
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\ParentalControl.runtimeconfig.json
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\ParentalControl.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\ParentalControl.pdb
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\System.ServiceProcess.ServiceController.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\bin\Release\net8.0-windows\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.AssemblyReference.cache
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfoInputs.cache
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfo.cs
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.CoreCompileInputs.cache
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\Parental.97795D9A.Up2Date
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\refint\ParentalControl.dll
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.pdb
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ParentalControl.genruntimeconfig.cache
+C:\Users\EDWIN-PC\Desktop\files (1)\obj\Release\net8.0-windows\ref\ParentalControl.dll
+C:\files (1)\bin\Release\net8.0-windows\ParentalControl.exe
+C:\files (1)\bin\Release\net8.0-windows\ParentalControl.deps.json
+C:\files (1)\bin\Release\net8.0-windows\ParentalControl.runtimeconfig.json
+C:\files (1)\bin\Release\net8.0-windows\ParentalControl.dll
+C:\files (1)\bin\Release\net8.0-windows\ParentalControl.pdb
+C:\files (1)\bin\Release\net8.0-windows\System.ServiceProcess.ServiceController.dll
+C:\files (1)\bin\Release\net8.0-windows\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.AssemblyReference.cache
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.GeneratedMSBuildEditorConfig.editorconfig
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfoInputs.cache
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.AssemblyInfo.cs
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.csproj.CoreCompileInputs.cache
+C:\files (1)\obj\Release\net8.0-windows\Parental.97795D9A.Up2Date
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.dll
+C:\files (1)\obj\Release\net8.0-windows\refint\ParentalControl.dll
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.pdb
+C:\files (1)\obj\Release\net8.0-windows\ParentalControl.genruntimeconfig.cache
+C:\files (1)\obj\Release\net8.0-windows\ref\ParentalControl.dll
+C:\parental\bin\Release\net8.0-windows\ParentalControl.exe
+C:\parental\bin\Release\net8.0-windows\ParentalControl.deps.json
+C:\parental\bin\Release\net8.0-windows\ParentalControl.runtimeconfig.json
+C:\parental\bin\Release\net8.0-windows\ParentalControl.dll
+C:\parental\bin\Release\net8.0-windows\ParentalControl.pdb
+C:\parental\bin\Release\net8.0-windows\System.ServiceProcess.ServiceController.dll
+C:\parental\bin\Release\net8.0-windows\runtimes\win\lib\net8.0\System.ServiceProcess.ServiceController.dll
+C:\parental\obj\Release\net8.0-windows\ParentalControl.csproj.AssemblyReference.cache
+C:\parental\obj\Release\net8.0-windows\ParentalControl.GeneratedMSBuildEditorConfig.editorconfig
+C:\parental\obj\Release\net8.0-windows\ParentalControl.AssemblyInfoInputs.cache
+C:\parental\obj\Release\net8.0-windows\ParentalControl.AssemblyInfo.cs
+C:\parental\obj\Release\net8.0-windows\ParentalControl.csproj.CoreCompileInputs.cache
+C:\parental\obj\Release\net8.0-windows\Parental.97795D9A.Up2Date
+C:\parental\obj\Release\net8.0-windows\ParentalControl.dll
+C:\parental\obj\Release\net8.0-windows\refint\ParentalControl.dll
+C:\parental\obj\Release\net8.0-windows\ParentalControl.pdb
+C:\parental\obj\Release\net8.0-windows\ParentalControl.genruntimeconfig.cache
+C:\parental\obj\Release\net8.0-windows\ref\ParentalControl.dll

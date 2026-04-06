@@ -1,0 +1,101 @@
+=====================================================
+  PARENTAL CONTROL - HOW TO INSTALL
+=====================================================
+
+STEP 1: Install .NET 8 SDK (if not already installed)
+  → https://dotnet.microsoft.com/download/dotnet/8.0
+  → Download the SDK (not just Runtime)
+  → Install it and restart your computer
+
+STEP 2: Double-click INSTALL.bat
+  → Click "Yes" when Windows asks for Admin permission
+  → A PowerShell window will open
+  → Wait ~1-2 minutes for it to build and install
+  → You'll see green [OK] messages if successful
+
+STEP 3: Check for errors
+  → If the installer stops or shows red [FAILED] messages:
+     - Open "install.log" in this folder
+     - Read the error messages
+     - Common issues:
+       * .NET 8 SDK not installed (go back to Step 1)
+       * Antivirus blocking the installer (disable temporarily)
+       * Another parental control app running (uninstall it first)
+
+STEP 4: Done!
+  → A "Parental Control" shortcut appears on your Desktop
+  → Blocking starts IMMEDIATELY — no setup needed
+  → Service runs 24/7 in background
+
+=====================================================
+IMPORTANT: CHANGE THE ADMIN PASSWORD
+=====================================================
+
+  1. Open "Parental Control" from Desktop
+  2. Go to "Settings" tab
+  3. Change password from default: ParentAdmin123
+  4. DO THIS BEFORE YOUR SIBLING SEES IT!
+
+=====================================================
+WHAT GETS BLOCKED AUTOMATICALLY
+=====================================================
+
+• 60+ major adult content websites (Pornhub, xVideos, etc.)
+• Live cam sites (Chaturbate, LiveJasmin, etc.)
+• OnlyFans and similar subscription sites
+• Image boards (4chan, Rule34, etc.)
+• Gambling sites (Bet365, PokerStars, etc.)
+• Gore / violence sites (BestGore, Liveleak, etc.)
+• Proxy and VPN bypass sites (prevents circumvention)
+• ANY site whose domain contains keywords like:
+  porn, xxx, sex, nude, adult, cam, hentai, nsfw, etc.
+
+=====================================================
+HOW IT BLOCKS
+=====================================================
+
+• Runs as a Windows Service 24/7 in the background
+• Rewrites the system hosts file every 30 seconds
+• Works in ALL browsers: Chrome, Edge, Firefox, Opera, etc.
+• Cannot be bypassed by:
+  - Clearing browser history/cookies
+  - Using Incognito/Private mode
+  - Changing DNS settings
+  - Editing hosts file manually (gets restored in 30 sec)
+
+• CAN ONLY be stopped by:
+  - Uninstalling the service (requires admin password)
+  - Stopping the Windows Service (requires admin access)
+
+=====================================================
+TO UNINSTALL
+=====================================================
+
+  → Double-click UNINSTALL.bat
+  → Confirm with admin permission
+  → All blocking will be removed
+
+=====================================================
+TROUBLESHOOTING
+=====================================================
+
+Problem: Installer stops immediately after admin prompt
+  → Check install.log for errors
+  → Most likely: .NET 8 SDK not installed
+
+Problem: Sites still accessible after install
+  → Open Desktop shortcut
+  → Check if service status shows "Running"
+  → If not running, try rebooting computer
+
+Problem: Can't add/remove sites in manager
+  → You need the admin password
+  → Default is: ParentAdmin123
+
+Problem: Want to temporarily disable blocking
+  → Open Services (services.msc)
+  → Find "Parental Control Service"
+  → Stop it (requires admin password)
+  → Start it again when needed
+
+=====================================================
