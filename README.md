@@ -40,8 +40,9 @@ The Active Blocks tab showing monitored domains
 Before installing, ensure your system meets the following requirements:
 
   * **OS:** Windows 10 or Windows 11
-  * **Framework:** [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Ensure you install the SDK, not just the Runtime)
+  * **Framework:** [.NET 8.0 SDK](Ensure you install the SDK, not just the Runtime) Download Link: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.419-windows-x64-installer
   * **Permissions:** Administrator privileges are strictly required.
+
 
 -----
 
