@@ -1,4 +1,4 @@
-Here is the fully fleshed-out, professional README file. You can copy and paste this directly into your GitHub repository's `README.md` file.
+
 
 -----
 
@@ -8,7 +8,7 @@ A lightweight, robust Windows-native security application designed to monitor an
 
 ## ⚠️ Disclaimer
 
-**Legal and Ethical Use:** This software is provided "as-is" and is intended *strictly* for parents or legal guardians monitoring minor children on devices they legally own and control. The author is not responsible for any system instability, data loss, or legal repercussions resulting from the use or misuse of this tool. Modifying system-level configurations (like the `hosts` file and DNS) carries inherent risks.
+**Legal and Ethical Use:** This software is provided "as-is" and is intended *strictly* for parents or legal guardians monitoring minor children on devices they legally own and control.
 
 -----
 
