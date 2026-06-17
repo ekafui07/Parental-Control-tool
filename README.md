@@ -14,23 +14,20 @@ A lightweight, robust Windows-native security application designed to monitor an
 
 ## 📸 Screenshots
 
-
-
 > (assets/active_block_list.png)
 The Active Blocks tab showing monitored domains
-
-> (assets/settings.png)
-> The Settings tab for administrative control.
 
 -----
 
 ## 🚀 Key Features
 
-  * **Multi-Layered Blocking:** Combines a hardcoded list of over 60 major adult, gambling, and violence-related domains with keyword-based filtering.
+  * **Multi-Layered Blocking:** Combines a hardcoded list of 60+ adult, gambling, and violence-related domains with keyword-based filtering, plus 20+ torrent sites.
+  * **Video File Blocking:** Blocks all video formats (.mp4, .mkv, .avi, .mov, .flv, .webm, and 35+ more) via HTTP proxy interception and network packet inspection.
   * **DNS Enforcement:** Automatically locks system DNS settings to **Cloudflare for Families (1.1.1.3)** to filter out malware and adult content.
-  * **Bypass Prevention:** Continuously monitors and terminates processes for VPNs, proxy tools, and specialized browsers (like Tor or Brave) that could be used to circumvent filters.
-  * **Persistent Service:** Runs as a **Windows Service 24/7**, re-enforcing the system hosts file every 30 seconds to prevent manual tampering.
-  * **Administrative Control:** Includes a Management GUI that requires a password to add custom blocks, remove blocks, or change settings.
+  * **Browser Extension Blocking:** Disables all extensions in Chrome, Edge, Firefox, Opera, Brave, and Vivaldi—new installations blocked via Group Policy.
+  * **Bypass Prevention:** Continuously monitors and terminates processes for VPNs, proxy tools, and specialized browsers (like Tor or Brave) that could circumvent filters.
+  * **Persistent Service:** Runs as a **Windows Service 24/7**, re-enforcing the system hosts file every 30 seconds and HTTP proxy every 60 seconds.
+  * **Administrative Control:** Includes a Management GUI that requires a password to add custom blocks, remove blocks, or monitor protection status.
   * **Audit Logging:** Tracks blocked attempts and bypass activities directly in the **Windows Event Log**.
 
 -----
@@ -63,9 +60,13 @@ Before installing, ensure your system meets the following requirements:
 Once installed, the blocking begins immediately. To manage the settings:
 
 1.  Open the **Parental Control** app from your Desktop shortcut.
-2.  Navigate to the **Settings** tab.
-3.  **CHANGE YOUR PASSWORD IMMEDIATELY.**
-      * **Default Password:** `ParentAdmin123`
+2.  **Admin Password:** `n0Zone2017` (hardcoded, cannot be changed)
+3.  Use the GUI to:
+      * Monitor live protection status (DNS, Proxy, Extensions, VPN blocking)
+      * View recent audit log entries
+      * Add custom domain blocks (requires password)
+      * Remove custom blocks (requires password)
+      * Force re-enforce all protections
 
 From the GUI, you can monitor live protection status, view audit logs, and manually add or remove custom domain blocks.
 

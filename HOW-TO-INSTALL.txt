@@ -28,27 +28,41 @@ STEP 4: Done!
   → Service runs 24/7 in background
 
 =====================================================
-IMPORTANT: CHANGE THE ADMIN PASSWORD
+ADMIN PASSWORD
 =====================================================
 
-  1. Open "Parental Control" from Desktop
-  2. Go to "Settings" tab
-  3. Change password from default: ParentAdmin123
-  4. DO THIS BEFORE YOUR SIBLING SEES IT!
+  Admin Password: n0Zone2017 (hardcoded, cannot be changed)
+  
+  Use this password to:
+  • Add custom domain blocks
+  • Remove custom blocks
+  • Access admin functions in the GUI
 
 =====================================================
 WHAT GETS BLOCKED AUTOMATICALLY
 =====================================================
 
+WEBSITES:
 • 60+ major adult content websites (Pornhub, xVideos, etc.)
 • Live cam sites (Chaturbate, LiveJasmin, etc.)
 • OnlyFans and similar subscription sites
 • Image boards (4chan, Rule34, etc.)
 • Gambling sites (Bet365, PokerStars, etc.)
 • Gore / violence sites (BestGore, Liveleak, etc.)
+• 20+ torrent sites (PirateBay, 1337x, RARBG, etc.)
 • Proxy and VPN bypass sites (prevents circumvention)
 • ANY site whose domain contains keywords like:
-  porn, xxx, sex, nude, adult, cam, hentai, nsfw, etc.
+  porn, xxx, sex, nude, adult, cam, hentai, nsfw, torrent, etc.
+
+VIDEO FILES (all formats blocked):
+• .mp4, .mkv, .avi, .mov, .flv, .wmv, .webm
+• .3gp, .m4v, .m4a, .mpa, .mpeg, .mpg, .ts
+• And 30+ other video/movie formats
+
+BROWSER EXTENSIONS:
+• All extensions disabled in Chrome, Edge, Firefox, Opera, Brave
+• New extensions cannot be installed (blocked by policy)
+• Prevents bypass extensions from working
 
 =====================================================
 HOW IT BLOCKS

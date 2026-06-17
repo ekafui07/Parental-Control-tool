@@ -173,13 +173,13 @@ try {
     Write-Host "  PARENTAL CONTROL - INSTALLATION COMPLETE" -ForegroundColor Green
     Write-Host "================================================" -ForegroundColor Green
     Write-Host "`n60+ adult sites are now BLOCKED automatically." -ForegroundColor Cyan
+    Write-Host "Video formats (.mp4, .mkv, .avi, etc.) are blocked." -ForegroundColor Cyan
+    Write-Host "Torrent sites are blocked." -ForegroundColor Cyan
+    Write-Host "Browser extensions are disabled." -ForegroundColor Cyan
     Write-Host "DNS locked to Cloudflare for Families (1.1.1.3)." -ForegroundColor Cyan
     Write-Host "Brave, Tor, and VPN processes will be killed automatically." -ForegroundColor Cyan
     Write-Host "All events logged to Windows Event Log (tamper-proof)." -ForegroundColor Cyan
-    Write-Host "`nIMPORTANT NEXT STEP:" -ForegroundColor Yellow
-    Write-Host "1. Open 'Parental Control' from your Desktop" -ForegroundColor White
-    Write-Host "2. Go to Settings tab" -ForegroundColor White
-    Write-Host "3. Change admin password from default: ParentAdmin123" -ForegroundColor White
+    Write-Host "`nADMIN PASSWORD: n0Zone2017 (hardcoded, cannot be changed)" -ForegroundColor Yellow
     Write-Host "`nPress any key to exit..."
     $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     

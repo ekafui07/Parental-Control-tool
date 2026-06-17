@@ -139,9 +139,8 @@ After deployment, verify:
 ### Before Going Live
 1. Test on 3-5 machines
 2. Verify no false positives
-3. Document password (default: ParentAdmin123)
-4. Change password on all machines
-5. Test network conditions (WiFi, VPN, etc.)
+3. Document admin password: **n0Zone2017** (hardcoded, cannot be changed)
+4. Test network conditions (WiFi, VPN, etc.)
 
 ### Deployment Size
 - Self-contained .exe: ~180 MB
@@ -185,10 +184,11 @@ After deployment, verify:
 ## 🔐 Security Considerations
 
 ### Password Management
-- Change default password immediately
-- Use strong password (12+ characters)
-- Store securely (not in notes)
-- Can be changed only with current password
+- Admin password: **n0Zone2017** (hardcoded in executable, cannot be changed)
+- Password is baked into the compiled code
+- Protects GUI admin functions (add/remove blocks)
+- Cannot be modified after installation
+- Same password across all deployments (by design)
 
 ### Admin Restrictions
 - Service requires Administrator to run

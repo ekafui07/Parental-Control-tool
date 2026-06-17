@@ -1032,10 +1032,11 @@ namespace ParentalControl
         {
             CustomBlocksFile = Path.Combine(DataDir, "custom_blocks.txt");
             PasswordFile     = Path.Combine(DataDir, "admin.pwd");
-            AdminPasswordHash = HashPassword("ParentAdmin123");
+            
+            // Hardcoded admin password - cannot be changed
+            AdminPasswordHash = HashPassword("n0Zone2017");
 
             LoadCustomBlocks();
-            LoadAdminPassword();
         }
 
         public static bool IsBlocked(string domain)
@@ -1071,14 +1072,6 @@ namespace ParentalControl
             return false;
         }
 
-        public static bool ChangePassword(string oldPassword, string newPassword)
-        {
-            if (!VerifyPassword(oldPassword)) return false;
-            AdminPasswordHash = HashPassword(newPassword);
-            SaveAdminPassword();
-            return true;
-        }
-
         public static bool VerifyPassword(string password)
             => HashPassword(password) == AdminPasswordHash;
 
@@ -1109,26 +1102,6 @@ namespace ParentalControl
             {
                 Directory.CreateDirectory(DataDir);
                 File.WriteAllLines(CustomBlocksFile, CustomBlocks);
-            }
-            catch { }
-        }
-
-        private static void LoadAdminPassword()
-        {
-            try
-            {
-                if (File.Exists(PasswordFile))
-                    AdminPasswordHash = File.ReadAllText(PasswordFile).Trim();
-            }
-            catch { }
-        }
-
-        private static void SaveAdminPassword()
-        {
-            try
-            {
-                Directory.CreateDirectory(DataDir);
-                File.WriteAllText(PasswordFile, AdminPasswordHash);
             }
             catch { }
         }
@@ -1226,8 +1199,6 @@ namespace ParentalControl
         private TextBox addDomainBox;
         private Button addButton, removeButton;
         private Label statusLabel;
-        private TextBox oldPasswordBox, newPasswordBox, confirmPasswordBox;
-        private Button changePasswordButton;
         private RichTextBox logBox;
 
         public ManagerForm()
@@ -1239,7 +1210,6 @@ namespace ParentalControl
             tabs = new TabControl { Dock = DockStyle.Fill };
             tabs.TabPages.Add(CreateBlocksTab());
             tabs.TabPages.Add(CreateStatusTab());
-            tabs.TabPages.Add(CreateSettingsTab());
             Controls.Add(tabs);
 
             UpdateStatus();
@@ -1454,57 +1424,6 @@ namespace ParentalControl
             }
         }
 
-        // ---- Settings Tab ----
-        private TabPage CreateSettingsTab()
-        {
-            var tab = new TabPage("Settings");
-
-            var titleLabel = new Label
-            {
-                Text = "Change Admin Password",
-                Location = new Point(20, 30),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold)
-            };
-            tab.Controls.Add(titleLabel);
-
-            var oldLabel = new Label { Text = "Current Password:", Location = new Point(20, 80), AutoSize = true };
-            tab.Controls.Add(oldLabel);
-            oldPasswordBox = new TextBox { Location = new Point(20, 100), Size = new Size(300, 25), UseSystemPasswordChar = true };
-            tab.Controls.Add(oldPasswordBox);
-
-            var newLabel = new Label { Text = "New Password:", Location = new Point(20, 140), AutoSize = true };
-            tab.Controls.Add(newLabel);
-            newPasswordBox = new TextBox { Location = new Point(20, 160), Size = new Size(300, 25), UseSystemPasswordChar = true };
-            tab.Controls.Add(newPasswordBox);
-
-            var confirmLabel = new Label { Text = "Confirm New Password:", Location = new Point(20, 200), AutoSize = true };
-            tab.Controls.Add(confirmLabel);
-            confirmPasswordBox = new TextBox { Location = new Point(20, 220), Size = new Size(300, 25), UseSystemPasswordChar = true };
-            tab.Controls.Add(confirmPasswordBox);
-
-            changePasswordButton = new Button
-            {
-                Text = "Change Password",
-                Location = new Point(20, 265),
-                Size = new Size(150, 32)
-            };
-            changePasswordButton.Click += ChangePassword_Click;
-            tab.Controls.Add(changePasswordButton);
-
-            var warningLabel = new Label
-            {
-                Text = "⚠️ Default password is: ParentAdmin123\nChange this immediately!",
-                Location = new Point(20, 315),
-                Size = new Size(500, 50),
-                ForeColor = Color.OrangeRed,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
-            };
-            tab.Controls.Add(warningLabel);
-
-            return tab;
-        }
-
         // ---- Event handlers ----
         private void RefreshBlockList()
         {
@@ -1570,31 +1489,6 @@ namespace ParentalControl
             else
             {
                 MessageBox.Show("Incorrect password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ChangePassword_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(oldPasswordBox.Text) || string.IsNullOrEmpty(newPasswordBox.Text))
-            {
-                MessageBox.Show("Please fill in all fields.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (newPasswordBox.Text != confirmPasswordBox.Text)
-            {
-                MessageBox.Show("New passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (BlockingEngine.ChangePassword(oldPasswordBox.Text, newPasswordBox.Text))
-            {
-                oldPasswordBox.Clear(); newPasswordBox.Clear(); confirmPasswordBox.Clear();
-                MessageBox.Show("Password changed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show("Current password is incorrect.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
