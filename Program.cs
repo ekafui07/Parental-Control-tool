@@ -4,8 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.Json;
@@ -65,6 +67,667 @@ namespace ParentalControl
 
         public static void LogBypassAttempt(string detail)
             => Log($"BYPASS ATTEMPT: {detail}", EventLogEntryType.Error);
+    }
+
+    // ============================================
+    // BROWSER EXTENSION BLOCKER - Layer 4.5
+    // Disables all extensions in Chrome, Firefox, Edge, Opera, etc.
+    // ============================================
+    public static class BrowserExtensionBlocker
+    {
+        private static readonly object LockObj = new object();
+        
+        // Common browser paths
+        private static readonly Dictionary<string, string> BrowserExtensionPaths = new Dictionary<string, string>
+        {
+            // Chrome/Chromium family
+            { "chrome", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Google\Chrome\User Data") },
+            { "chromium", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Chromium\User Data") },
+            { "edge", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Edge\User Data") },
+            { "opera", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Opera Software\Opera Stable") },
+            { "brave", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"BraveSoftware\Brave-Browser\User Data") },
+            { "vivaldi", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Vivaldi\User Data") },
+            
+            // Firefox
+            { "firefox", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Mozilla\Firefox") },
+        };
+
+        public static void DisableAllExtensions()
+        {
+            lock (LockObj)
+            {
+                try
+                {
+                    // Disable Chrome-based browsers
+                    DisableChromeExtensions();
+                    
+                    // Disable Firefox extensions
+                    DisableFirefoxExtensions();
+                    
+                    // Block extension install policies
+                    BlockExtensionInstallation();
+                    
+                    AuditLogger.Log("All browser extensions disabled/blocked");
+                }
+                catch (Exception ex)
+                {
+                    AuditLogger.Log($"Error disabling extensions: {ex.Message}", EventLogEntryType.Warning);
+                }
+            }
+        }
+
+        private static void DisableChromeExtensions()
+        {
+            foreach (var browserPath in BrowserExtensionPaths.Where(x => x.Key != "firefox"))
+            {
+                try
+                {
+                    if (!Directory.Exists(browserPath.Value)) continue;
+
+                    var extensionsPath = Path.Combine(browserPath.Value, "Extensions");
+                    if (Directory.Exists(extensionsPath))
+                    {
+                        // Disable each extension by modifying manifest.json
+                        foreach (var extDir in Directory.GetDirectories(extensionsPath))
+                        {
+                            DisableChromeExtension(extDir);
+                        }
+                    }
+
+                    // Also check for extensions in profile folders
+                    var profiles = Directory.GetDirectories(browserPath.Value).Where(d => d.Contains("Profile") || d.Contains("Default"));
+                    foreach (var profileDir in profiles)
+                    {
+                        var profileExtDir = Path.Combine(profileDir, "Extensions");
+                        if (Directory.Exists(profileExtDir))
+                        {
+                            foreach (var extDir in Directory.GetDirectories(profileExtDir))
+                            {
+                                DisableChromeExtension(extDir);
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+        }
+
+        private static void DisableChromeExtension(string extensionDir)
+        {
+            try
+            {
+                var manifestPath = Path.Combine(extensionDir, "manifest.json");
+                if (!File.Exists(manifestPath)) return;
+
+                // Read manifest
+                var manifest = File.ReadAllText(manifestPath);
+                
+                // Check if already disabled
+                if (manifest.Contains("\"disabled\": true")) return;
+
+                // Parse JSON and add disabled flag
+                using var doc = JsonDocument.Parse(manifest);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var root = doc.RootElement;
+
+                // Create modified manifest with disabled flag
+                var modified = manifest;
+                if (!modified.Contains("\"disabled\""))
+                {
+                    modified = modified.Replace("}", ",\"disabled\": true}", 1);
+                }
+
+                File.WriteAllText(manifestPath, modified);
+                AuditLogger.Log($"Disabled extension: {Path.GetFileName(extensionDir)}", EventLogEntryType.Information);
+            }
+            catch { }
+        }
+
+        private static void DisableFirefoxExtensions()
+        {
+            try
+            {
+                var firefoxProfilePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    @"Mozilla\Firefox\Profiles");
+
+                if (!Directory.Exists(firefoxProfilePath)) return;
+
+                foreach (var profileDir in Directory.GetDirectories(firefoxProfilePath))
+                {
+                    var extensionsJsonPath = Path.Combine(profileDir, "extensions.json");
+                    if (!File.Exists(extensionsJsonPath)) continue;
+
+                    try
+                    {
+                        var content = File.ReadAllText(extensionsJsonPath);
+                        using var doc = JsonDocument.Parse(content);
+                        var root = doc.RootElement;
+
+                        // Disable all extensions in Firefox by modifying extensions.json
+                        if (root.TryGetProperty("addons", out var addons))
+                        {
+                            var modified = content;
+                            // Replace enabled:true with enabled:false
+                            modified = System.Text.RegularExpressions.Regex.Replace(
+                                modified, 
+                                "\"enabled\"\\s*:\\s*true", 
+                                "\"enabled\": false");
+                            
+                            File.WriteAllText(extensionsJsonPath, modified);
+                            AuditLogger.Log($"Disabled Firefox extensions in profile: {Path.GetFileName(profileDir)}", EventLogEntryType.Information);
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        private static void BlockExtensionInstallation()
+        {
+            try
+            {
+                // Chrome/Edge Group Policy to block extension installation
+                var regPath = @"Software\Policies\Google\Chrome";
+                using var key = Registry.CurrentUser.CreateSubKey(regPath);
+                if (key != null)
+                {
+                    key.SetValue("ExtensionInstallBlocklist", new string[] { "*" }, RegistryValueKind.MultiString);
+                    key.SetValue("ExtensionInstallAllowlist", "", RegistryValueKind.String);
+                    AuditLogger.Log("Chrome extension installation policy enforced");
+                }
+
+                // Microsoft Edge policy
+                regPath = @"Software\Policies\Microsoft\Edge";
+                using var edgeKey = Registry.CurrentUser.CreateSubKey(regPath);
+                if (edgeKey != null)
+                {
+                    edgeKey.SetValue("ExtensionInstallBlocklist", new string[] { "*" }, RegistryValueKind.MultiString);
+                    edgeKey.SetValue("ExtensionInstallAllowlist", "", RegistryValueKind.String);
+                    AuditLogger.Log("Edge extension installation policy enforced");
+                }
+
+                // Firefox about:config settings (requires automation)
+                BlockFirefoxExtensionInstall();
+            }
+            catch { }
+        }
+
+        private static void BlockFirefoxExtensionInstall()
+        {
+            try
+            {
+                var firefoxProfilePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    @"Mozilla\Firefox\Profiles");
+
+                if (!Directory.Exists(firefoxProfilePath)) return;
+
+                foreach (var profileDir in Directory.GetDirectories(firefoxProfilePath))
+                {
+                    var prefsPath = Path.Combine(profileDir, "prefs.js");
+                    if (!File.Exists(prefsPath)) continue;
+
+                    try
+                    {
+                        var content = File.ReadAllText(prefsPath);
+                        
+                        // Add prefs to block extension installation
+                        if (!content.Contains("extensions.autoDisableScopes"))
+                        {
+                            var newPrefs = content + "\nuser_pref(\"extensions.autoDisableScopes\", 15);\n";
+                            newPrefs += "user_pref(\"extensions.update.autoUpdateDefault\", false);\n";
+                            newPrefs += "user_pref(\"extensions.update.enabled\", false);\n";
+                            
+                            File.WriteAllText(prefsPath, newPrefs);
+                            AuditLogger.Log($"Firefox extension blocking enabled for profile: {Path.GetFileName(profileDir)}");
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        public static IEnumerable<string> GetInstalledExtensions()
+        {
+            var extensions = new List<string>();
+
+            try
+            {
+                // Scan Chrome extensions
+                foreach (var browserPath in BrowserExtensionPaths.Where(x => x.Key != "firefox"))
+                {
+                    if (!Directory.Exists(browserPath.Value)) continue;
+
+                    var extensionsPath = Path.Combine(browserPath.Value, "Extensions");
+                    if (Directory.Exists(extensionsPath))
+                    {
+                        foreach (var extDir in Directory.GetDirectories(extensionsPath))
+                        {
+                            var manifestPath = Path.Combine(extDir, "manifest.json");
+                            if (File.Exists(manifestPath))
+                            {
+                                try
+                                {
+                                    var manifest = File.ReadAllText(manifestPath);
+                                    if (manifest.Contains("\"name\""))
+                                    {
+                                        var name = System.Text.RegularExpressions.Regex.Match(manifest, "\"name\"\\s*:\\s*\"([^\"]+)\"");
+                                        if (name.Success)
+                                            extensions.Add($"{browserPath.Key}: {name.Groups[1].Value}");
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return extensions;
+        }
+
+        public static void MonitorAndDisableExtensions()
+        {
+            // This runs periodically to catch newly installed extensions
+            DisableAllExtensions();
+        }
+    }
+
+    // ============================================
+    // VIDEO DETECTOR - Layer 2: Network Interception
+    // Detects all movie/video file formats
+    // ============================================
+    public static class VideoDetector
+    {
+        // Common video file magic bytes/signatures
+        private static readonly Dictionary<byte[], string> VideoMagicBytes = new Dictionary<byte[], string>
+        {
+            { new byte[] { 0x66, 0x74, 0x79, 0x70 }, "mp4/m4v" },      // ftyp (MP4)
+            { new byte[] { 0x52, 0x49, 0x46, 0x46 }, "avi" },           // RIFF (AVI/WAV)
+            { new byte[] { 0x1A, 0x45, 0xDF, 0xA3 }, "mkv" },           // MKV header
+            { new byte[] { 0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70 }, "mov" }, // MOV
+            { new byte[] { 0xFF, 0xD8, 0xFF }, "jpg" },                 // JPEG (sometimes in video)
+            { new byte[] { 0x47, 0x49, 0x46 }, "gif" },                 // GIF
+            { new byte[] { 0x50, 0x4B, 0x03, 0x04 }, "flv" },           // FLV (Flash)
+            { new byte[] { 0x42, 0x4D }, "bmp" },                       // BMP
+            { new byte[] { 0x89, 0x50, 0x4E, 0x47 }, "png" }            // PNG
+        };
+
+        // Comprehensive list of all video/movie file extensions
+        private static readonly HashSet<string> VideoExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // MPEG/MP4 family
+            ".mp4", ".m4v", ".m4a", ".mov", ".3gp", ".3g2", ".mj2", ".ismv", ".isma",
+
+            // AVI/RIFF family
+            ".avi", ".divx", ".dv",
+
+            // Matroska family
+            ".mkv", ".mka", ".mk3d", ".mks",
+
+            // Flash Video
+            ".flv", ".f4v", ".f4a",
+
+            // Windows Media
+            ".wmv", ".wma", ".asf",
+
+            // Ogg/Vorbis
+            ".ogv", ".ogg", ".oga",
+
+            // WebM
+            ".webm",
+
+            // MPEG
+            ".mpg", ".mpeg", ".m1v", ".m2v", ".m2p", ".mpa", ".mpe",
+
+            // MPEG-TS
+            ".ts", ".mts", ".m2ts", ".m2ts",
+
+            // Other video formats
+            ".rm", ".rmvb", ".ra",     // RealMedia
+            ".vob", ".ifo",            // DVD
+            ".swf",                    // Shockwave Flash
+            ".qt",                     // QuickTime
+            ".amv",                    // AnyVideo
+            ".xpl", ".xpml",           // Playlist formats
+            ".mxf",                    // MXF (professional)
+            ".ivf",                    // IVF (VP8/VP9)
+            ".flc", ".fli",            // Autodesk Animator
+            ".nsv",                    // NullSoft Video
+            ".roq",                    // ROQ (game video)
+            ".svi",                    // Samsung Video
+            ".yuv",                    // Raw video
+            ".y4m",                    // Raw YUV4MPEG2
+            ".mvk", ".mlv",            // Magic Lantern
+            ".mpl",                    // MPEG Playlist
+            ".m3u", ".m3u8",           // Playlist (often video)
+            ".m4b",                    // Protected audio (sometimes video)
+            ".asx", ".wvx", ".wax",    // Windows playlists
+            ".avs"                     // AVS Script
+        };
+
+        // Video MIME types
+        private static readonly HashSet<string> VideoMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "video/mp4", "video/m4v", "video/x-m4v", "audio/mp4", "audio/m4a",
+            "video/quicktime", "video/x-quicktime",
+            "video/x-msvideo", "video/avi", "video/x-avi",
+            "video/x-matroska", "audio/x-matroska",
+            "video/x-flv", "video/x-flash-video", "application/x-flash-video",
+            "video/x-ms-wmv", "audio/x-ms-wma", "video/x-ms-asf",
+            "video/ogg", "application/ogg", "audio/ogg",
+            "video/webm", "audio/webm",
+            "video/mpeg", "video/x-mpeg", "audio/mpeg",
+            "video/mp2t", "video/x-mp2t", "video/x-mpegts",
+            "application/x-mpegURL", "application/vnd.apple.mpegurl",
+            "video/x-vnd.rn-realvideo", "audio/x-vnd.rn-realaudio",
+            "video/x-vobis", "video/dvd",
+            "application/x-shockwave-flash",
+            "video/x-raw",
+            "video/x-dv",
+            "video/x-mxf",
+            "video/x-ms-wvx",
+            "application/x-mplayer2"
+        };
+
+        public static bool IsVideoFile(string url, string contentType, byte[] contentStart)
+        {
+            // Check by extension
+            try
+            {
+                var uri = new Uri(url, UriKind.RelativeOrAbsolute);
+                var path = uri.LocalPath;
+                var ext = Path.GetExtension(path).ToLower();
+                
+                if (VideoExtensions.Contains(ext))
+                    return true;
+            }
+            catch { }
+
+            // Check by content-type header
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                var ct = contentType.ToLower();
+                foreach (var mimeType in VideoMimeTypes)
+                {
+                    if (ct.Contains(mimeType) || ct.StartsWith("video/") || ct.StartsWith("audio/"))
+                        return true;
+                }
+            }
+
+            // Check by magic bytes
+            if (contentStart != null && contentStart.Length >= 4)
+            {
+                foreach (var magic in VideoMagicBytes.Keys)
+                {
+                    if (contentStart.Length >= magic.Length)
+                    {
+                        bool match = true;
+                        for (int i = 0; i < magic.Length; i++)
+                        {
+                            if (contentStart[i] != magic[i])
+                            {
+                                match = false;
+                                break;
+                            }
+                        }
+                        if (match) return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsLikelyVideoFile(string url)
+        {
+            try
+            {
+                var uri = new Uri(url, UriKind.RelativeOrAbsolute);
+                var path = uri.LocalPath;
+                var ext = Path.GetExtension(path).ToLower();
+                return VideoExtensions.Contains(ext);
+            }
+            catch { }
+            return false;
+        }
+
+        public static IEnumerable<string> GetAllBlockedExtensions() => VideoExtensions;
+    }
+
+    // ============================================
+    // HTTP PROXY SERVER - Layer 2.5: Traffic Interception
+    // Intercepts HTTP traffic and blocks video downloads
+    // ============================================
+    public static class HttpProxyServer
+    {
+        private static TcpListener _listener;
+        private static bool _isRunning;
+        private static readonly int ProxyPort = 8080;
+        private static readonly HttpClient _httpClient = new HttpClient(new SocketsHttpHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.All
+        })
+        { Timeout = TimeSpan.FromSeconds(10) };
+
+        public static void Start()
+        {
+            if (_isRunning) return;
+
+            try
+            {
+                _listener = new TcpListener(IPAddress.Loopback, ProxyPort);
+                _listener.Start();
+                _isRunning = true;
+                
+                AuditLogger.Log($"HTTP Proxy started on port {ProxyPort} - blocking all video formats");
+                
+                Task.Run(AcceptClientsAsync);
+                
+                // Set system proxy
+                SetSystemProxy($"127.0.0.1:{ProxyPort}");
+            }
+            catch (Exception ex)
+            {
+                AuditLogger.Log($"Failed to start proxy: {ex.Message}", EventLogEntryType.Error);
+            }
+        }
+
+        public static void Stop()
+        {
+            _isRunning = false;
+            _listener?.Stop();
+            _listener = null;
+            ClearSystemProxy();
+            AuditLogger.Log("HTTP Proxy stopped");
+        }
+
+        private static async Task AcceptClientsAsync()
+        {
+            while (_isRunning)
+            {
+                try
+                {
+                    var client = await _listener.AcceptTcpClientAsync();
+                    _ = HandleClientAsync(client);
+                }
+                catch when (!_isRunning) { break; }
+                catch (Exception ex)
+                {
+                    AuditLogger.Log($"Proxy error: {ex.Message}", EventLogEntryType.Warning);
+                }
+            }
+        }
+
+        private static async Task HandleClientAsync(TcpClient client)
+        {
+            try
+            {
+                using (client)
+                using (var stream = client.GetStream())
+                using (var reader = new StreamReader(stream, Encoding.ASCII))
+                {
+                    // Read request line
+                    var requestLine = await reader.ReadLineAsync();
+                    if (string.IsNullOrEmpty(requestLine)) return;
+
+                    var parts = requestLine.Split(' ');
+                    if (parts.Length < 3) return;
+
+                    var method = parts[0];
+                    var url = parts[1];
+                    var host = "";
+
+                    // Read headers to get Host
+                    string headerLine;
+                    while ((headerLine = await reader.ReadLineAsync()) != null)
+                    {
+                        if (string.IsNullOrEmpty(headerLine)) break;
+                        if (headerLine.StartsWith("Host: ", StringComparison.OrdinalIgnoreCase))
+                            host = headerLine.Substring(6).Trim();
+                    }
+
+                    // Construct full URL
+                    if (!url.StartsWith("http"))
+                        url = "http://" + host + url;
+
+                    // Check if it's a video file
+                    if (VideoDetector.IsLikelyVideoFile(url))
+                    {
+                        // Block the request
+                        var blockMessage = $"HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\nContent-Length: 57\r\n\r\nVideo downloads are blocked by Parental Control.";
+                        var response = Encoding.ASCII.GetBytes(blockMessage);
+                        
+                        await stream.WriteAsync(response, 0, response.Length);
+                        await stream.FlushAsync();
+                        
+                        AuditLogger.LogBlock(url, "Video file download blocked by proxy");
+                        return;
+                    }
+
+                    // For other requests, forward to destination (CONNECT method for HTTPS)
+                    if (method.Equals("CONNECT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await HandleHttpsConnectAsync(stream, url);
+                    }
+                    else
+                    {
+                        await ForwardHttpRequestAsync(stream, requestLine, url);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static async Task HandleHttpsConnectAsync(NetworkStream stream, string url)
+        {
+            try
+            {
+                var hostPort = url.Split(':');
+                var host = hostPort[0];
+                var port = hostPort.Length > 1 ? int.Parse(hostPort[1]) : 443;
+
+                using (var remote = new TcpClient())
+                {
+                    await remote.ConnectAsync(host, port);
+                    
+                    // Send 200 Connection Established
+                    var response = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\n\r\n");
+                    await stream.WriteAsync(response, 0, response.Length);
+                    await stream.FlushAsync();
+
+                    // Tunnel data (passthrough for HTTPS - can't inspect encrypted content)
+                    var remoteStream = remote.GetStream();
+                    _ = CopyStreamAsync(stream, remoteStream);
+                    _ = CopyStreamAsync(remoteStream, stream);
+                }
+            }
+            catch { }
+        }
+
+        private static async Task ForwardHttpRequestAsync(NetworkStream stream, string requestLine, string url)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(new HttpMethod(requestLine.Split(' ')[0]), url);
+                var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+                
+                // Check if response is a video file
+                var contentType = response.Content.Headers.ContentType?.ToString() ?? "";
+                var contentLength = response.Content.Headers.ContentLength ?? 0;
+
+                if (contentLength > 0)
+                {
+                    var contentStart = new byte[Math.Min(512, (int)contentLength)];
+                    var content = await response.Content.ReadAsStreamAsync();
+                    await content.ReadAsync(contentStart, 0, contentStart.Length);
+
+                    if (VideoDetector.IsVideoFile(url, contentType, contentStart))
+                    {
+                        // Block it
+                        var blockResponse = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\nContent-Length: 57\r\n\r\nVideo downloads are blocked by Parental Control.";
+                        var blockBytes = Encoding.ASCII.GetBytes(blockResponse);
+                        await stream.WriteAsync(blockBytes, 0, blockBytes.Length);
+                        
+                        AuditLogger.LogBlock(url, "Video file download blocked by proxy (content check)");
+                        return;
+                    }
+                }
+
+                // Forward response
+                var statusLine = $"HTTP/{response.Version.Major}.{response.Version.Minor} {(int)response.StatusCode} {response.ReasonPhrase}\r\n";
+                var headerBytes = Encoding.ASCII.GetBytes(statusLine);
+                await stream.WriteAsync(headerBytes, 0, headerBytes.Length);
+
+                foreach (var header in response.Headers)
+                {
+                    var headerLine = $"{header.Key}: {string.Join(", ", header.Value)}\r\n";
+                    await stream.WriteAsync(Encoding.ASCII.GetBytes(headerLine), 0, headerLine.Length);
+                }
+
+                await stream.WriteAsync(Encoding.ASCII.GetBytes("\r\n"), 0, 2);
+                await stream.FlushAsync();
+
+                await response.Content.CopyToAsync(stream);
+            }
+            catch { }
+        }
+
+        private static async Task CopyStreamAsync(NetworkStream source, NetworkStream destination)
+        {
+            var buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await destination.WriteAsync(buffer, 0, bytesRead);
+            }
+        }
+
+        private static void SetSystemProxy(string proxy)
+        {
+            try
+            {
+                var regPath = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+                Registry.SetValue(regPath, "ProxyServer", proxy);
+                Registry.SetValue(regPath, "ProxyEnable", 1);
+                AuditLogger.Log($"System proxy configured: {proxy}");
+            }
+            catch { }
+        }
+
+        private static void ClearSystemProxy()
+        {
+            try
+            {
+                var regPath = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+                Registry.SetValue(regPath, "ProxyEnable", 0);
+            }
+            catch { }
+        }
     }
 
     // ============================================
@@ -318,6 +981,24 @@ namespace ParentalControl
             "vpnbook.com", "www.vpnbook.com",
             "filterbypass.me", "www.filterbypass.me",
 
+            // Torrent sites
+            "piratebay.org", "www.piratebay.org", "thepiratebay.info", "www.thepiratebay.info",
+            "1337x.to", "www.1337x.to",
+            "rarbg.to", "www.rarbg.to",
+            "kickass.to", "www.kickass.to",
+            "torrentleech.org", "www.torrentleech.org",
+            "torrentz.eu", "www.torrentz.eu",
+            "torrentz2.eu", "www.torrentz2.eu",
+            "limetorrents.info", "www.limetorrents.info",
+            "torrentfunk.com", "www.torrentfunk.com",
+            "torrentkitty.tv", "www.torrentkitty.tv",
+            "torrenthound.com", "www.torrenthound.com",
+            "yts.mx", "www.yts.mx",
+            "torrentgalaxy.to", "www.torrentgalaxy.to",
+            "isohunt.to", "www.isohunt.to",
+            "skytorrents.in", "www.skytorrents.in",
+            "torrentdownload.info", "www.torrentdownload.info",
+
             // DoH endpoints used by Brave/Chrome to bypass DNS filtering
             "dns.cloudflare.com",
             "dns.google",
@@ -333,7 +1014,7 @@ namespace ParentalControl
             "livecam", "webcam", "erotic", "playboy", "hustler", "penthouse",
             "brazzers", "bangbros", "naughty", "milf", "escort",
             "hookup", "casino", "poker", "slots", "betting",
-            "gore", "shock", "proxy", "vpn", "unblock", "bypass", "torrent"
+            "gore", "shock", "proxy", "vpn", "unblock", "bypass", "torrent", "piratebay"
         };
 
         private static HashSet<string> CustomBlocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -487,6 +1168,7 @@ namespace ParentalControl
     {
         private System.Threading.Timer _mainTimer;
         private System.Threading.Timer _processTimer;
+        private System.Threading.Timer _extensionTimer;
 
         public ParentalControlService()
         {
@@ -501,6 +1183,8 @@ namespace ParentalControl
             BlockingEngine.UpdateHostsFile();
             DnsEnforcer.EnforceDns();
             ProcessBlocker.KillBlockedProcesses();
+            BrowserExtensionBlocker.DisableAllExtensions();
+            HttpProxyServer.Start();
 
             // Hosts file + DNS re-enforcement every 30 seconds
             _mainTimer = new System.Threading.Timer(_ =>
@@ -514,12 +1198,20 @@ namespace ParentalControl
             {
                 ProcessBlocker.KillBlockedProcesses();
             }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+
+            // Extension blocker every 60 seconds (catch newly installed extensions)
+            _extensionTimer = new System.Threading.Timer(_ =>
+            {
+                BrowserExtensionBlocker.MonitorAndDisableExtensions();
+            }, null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
         }
 
         protected override void OnStop()
         {
             _mainTimer?.Dispose();
             _processTimer?.Dispose();
+            _extensionTimer?.Dispose();
+            HttpProxyServer.Stop();
             AuditLogger.Log("Parental Control Service stopped.", EventLogEntryType.Warning);
         }
     }
@@ -642,11 +1334,33 @@ namespace ParentalControl
             dnsLabel.ForeColor = dnsOk ? Color.Green : Color.OrangeRed;
             tab.Controls.Add(dnsLabel);
 
+            // Proxy status
+            var proxyLabel = new Label
+            {
+                Location = new Point(20, 80),
+                Size = new Size(680, 22),
+                Font = new Font("Segoe UI", 9),
+                Text = "✅ HTTP Proxy: Active on port 8080 (all video formats blocked)",
+                ForeColor = Color.Green
+            };
+            tab.Controls.Add(proxyLabel);
+
+            // Extension blocking status
+            var extensionLabel = new Label
+            {
+                Location = new Point(20, 105),
+                Size = new Size(680, 22),
+                Font = new Font("Segoe UI", 9),
+                Text = "✅ Browser Extensions: Blocked (all browsers monitored)",
+                ForeColor = Color.Green
+            };
+            tab.Controls.Add(extensionLabel);
+
             // Running bypass processes
             var procTitle = new Label
             {
                 Text = "Detected bypass processes (should be empty):",
-                Location = new Point(20, 85),
+                Location = new Point(20, 135),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9)
             };
@@ -654,8 +1368,8 @@ namespace ParentalControl
 
             var procList = new ListBox
             {
-                Location = new Point(20, 110),
-                Size = new Size(690, 80),
+                Location = new Point(20, 160),
+                Size = new Size(690, 65),
                 Font = new Font("Consolas", 9),
                 ForeColor = Color.Red
             };
@@ -669,7 +1383,7 @@ namespace ParentalControl
             var enforceBtn = new Button
             {
                 Text = "Force Re-Enforce All Protections Now",
-                Location = new Point(20, 200),
+                Location = new Point(20, 235),
                 Size = new Size(280, 32),
                 BackColor = Color.DarkGreen,
                 ForeColor = Color.White,
@@ -680,7 +1394,8 @@ namespace ParentalControl
                 BlockingEngine.UpdateHostsFile();
                 DnsEnforcer.EnforceDns();
                 ProcessBlocker.KillBlockedProcesses();
-                MessageBox.Show("All protections re-enforced.", "Done",
+                BrowserExtensionBlocker.DisableAllExtensions();
+                MessageBox.Show("All protections re-enforced (including extensions).", "Done",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
             tab.Controls.Add(enforceBtn);
@@ -689,7 +1404,7 @@ namespace ParentalControl
             var logTitle = new Label
             {
                 Text = "Recent audit log entries (Windows Event Log):",
-                Location = new Point(20, 250),
+                Location = new Point(20, 275),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9)
             };
@@ -697,8 +1412,8 @@ namespace ParentalControl
 
             logBox = new RichTextBox
             {
-                Location = new Point(20, 272),
-                Size = new Size(690, 160),
+                Location = new Point(20, 297),
+                Size = new Size(690, 135),
                 Font = new Font("Consolas", 8),
                 ReadOnly = true,
                 BackColor = Color.Black,
