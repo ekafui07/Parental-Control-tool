@@ -1207,7 +1207,7 @@ namespace ParentalControl
         public ManagerForm()
         {
             Text = "Parental Control Manager";
-            Size = new Size(750, 560);
+            Size = new Size(750, 700);
             StartPosition = FormStartPosition.CenterScreen;
 
             tabs = new TabControl { Dock = DockStyle.Fill };
@@ -1266,9 +1266,98 @@ namespace ParentalControl
             removeButton.Click += RemoveDomain_Click;
             tab.Controls.Add(removeButton);
 
+            // Whitelist section
+            var whitelistLabel = new Label
+            {
+                Text = "⭕ Whitelisted Domains (Allowed despite keywords)",
+                Location = new Point(20, 390),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            tab.Controls.Add(whitelistLabel);
+
+            var whitelistBox = new ListBox
+            {
+                Location = new Point(20, 415),
+                Size = new Size(690, 100),
+                Font = new Font("Consolas", 9)
+            };
+            tab.Controls.Add(whitelistBox);
+
+            var addWhitelistBox = new TextBox
+            {
+                Location = new Point(20, 525),
+                Size = new Size(300, 25),
+                PlaceholderText = "reddit.com"
+            };
+            tab.Controls.Add(addWhitelistBox);
+
+            var addWhitelistBtn = new Button
+            {
+                Text = "Whitelist Domain",
+                Location = new Point(330, 523),
+                Size = new Size(120, 28)
+            };
+            addWhitelistBtn.Click += (s, e) =>
+            {
+                var domain = addWhitelistBox.Text.Trim();
+                if (string.IsNullOrEmpty(domain))
+                {
+                    MessageBox.Show("Please enter a domain to whitelist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var password = PromptPassword("Enter admin password to whitelist domain:");
+                if (password == null) return;
+
+                if (BlockingEngine.AddWhitelistDomain(domain, password))
+                {
+                    RefreshWhitelistBox(whitelistBox);
+                    addWhitelistBox.Clear();
+                    MessageBox.Show($"Whitelisted: {domain}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Incorrect password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            tab.Controls.Add(addWhitelistBtn);
+
+            var removeWhitelistBtn = new Button
+            {
+                Text = "Remove Whitelist",
+                Location = new Point(460, 523),
+                Size = new Size(130, 28)
+            };
+            removeWhitelistBtn.Click += (s, e) =>
+            {
+                if (whitelistBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select a whitelisted domain to remove.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var domain = whitelistBox.SelectedItem.ToString();
+                var password = PromptPassword("Enter admin password to remove whitelist:");
+                if (password == null) return;
+
+                if (BlockingEngine.RemoveWhitelistDomain(domain, password))
+                {
+                    RefreshWhitelistBox(whitelistBox);
+                    MessageBox.Show($"Removed from whitelist: {domain}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Incorrect password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            tab.Controls.Add(removeWhitelistBtn);
+
+            RefreshWhitelistBox(whitelistBox);
+
             statusLabel = new Label
             {
-                Location = new Point(20, 395),
+                Location = new Point(20, 560),
                 Size = new Size(690, 50),
                 ForeColor = Color.Green,
                 Font = new Font("Segoe UI", 9)
@@ -1432,6 +1521,15 @@ namespace ParentalControl
             {
                 var prefix = BlockingEngine.HardcodedBlocks.Contains(domain) ? "[LOCKED] " : "[Custom] ";
                 blockedList.Items.Add(prefix + domain);
+            }
+        }
+
+        private void RefreshWhitelistBox(ListBox whitelistBox)
+        {
+            whitelistBox.Items.Clear();
+            foreach (var domain in BlockingEngine.GetWhitelistedDomains())
+            {
+                whitelistBox.Items.Add(domain);
             }
         }
 

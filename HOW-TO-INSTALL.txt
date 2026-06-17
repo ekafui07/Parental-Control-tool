@@ -26,6 +26,7 @@ STEP 4: Done!
   → A "Parental Control" shortcut appears on your Desktop
   → Blocking starts IMMEDIATELY — no setup needed
   → Service runs 24/7 in background
+  → Desktop shortcut opens the management GUI for monitoring and admin tasks
 
 =====================================================
 ADMIN PASSWORD
@@ -75,21 +76,52 @@ DNS ENFORCEMENT:
 • Blocking handled by hosts file + keyword filtering
 
 =====================================================
-HOW IT BLOCKS
+HOW IT WORKS (MULTI-LAYERED PROTECTION)
 =====================================================
 
-• Runs as a Windows Service 24/7 in the background
-• Rewrites the system hosts file every 30 seconds
-• Works in ALL browsers: Chrome, Edge, Firefox, Opera, etc.
-• Cannot be bypassed by:
-  - Clearing browser history/cookies
-  - Using Incognito/Private mode
-  - Changing DNS settings
-  - Editing hosts file manually (gets restored in 30 sec)
+Layer 1: Hosts File (Domain Blocking)
+  • Rewrites system hosts file every 30 seconds
+  • Blocks all hardcoded domains (porn, torrent sites, etc.)
+  • Keyword filtering (porn, xxx, sex, cam, etc.)
+  • Cannot be bypassed by:
+    - Clearing browser history/cookies
+    - Using Incognito/Private mode
+    - Editing hosts file manually (restored every 30 sec)
 
-• CAN ONLY be stopped by:
-  - Uninstalling the service (requires admin password)
-  - Stopping the Windows Service (requires admin access)
+Layer 2: HTTP Proxy (Video File Blocking)
+  • Intercepts HTTP traffic on port 8080
+  • Detects and blocks all video file downloads
+  • Checks by: file extension, MIME type, and magic bytes
+  • Blocks 40+ video formats (.mp4, .mkv, .avi, .mov, etc.)
+  • Returns 403 Forbidden for blocked video files
+
+Layer 3: Browser Extension Blocking
+  • Disables all existing extensions
+  • Prevents installation of new extensions via Group Policy
+  • Monitored and re-enforced every 60 seconds
+  • Works in: Chrome, Edge, Firefox, Opera, Brave, Vivaldi
+
+Layer 4: Process Killer
+  • Terminates VPN clients (ProtonVPN, NordVPN, etc.)
+  • Kills Tor Browser and Brave on startup
+  • Blocks proxy tools (Psiphon, UltraSurf, Lantern, etc.)
+  • Checks every 10 seconds for bypass attempts
+
+Whitelisting Feature:
+  • Some legitimate sites may be blocked by keyword matching
+  • Use the GUI to whitelist sites like Reddit with admin password
+  • Whitelisted domains bypass all keyword filtering
+
+Cannot be stopped by:
+  • Regular users (requires admin access)
+  • Clearing cache or browsing in incognito mode
+  • Editing hosts file (auto-restores)
+  • Changing DNS (hosts file still blocks)
+  • Installing bypass tools (processes killed automatically)
+
+Can ONLY be stopped by:
+  • Uninstalling service (requires admin password: n0Zone2017)
+  • Stopping Windows Service in Services.msc (requires admin)
 
 =====================================================
 TO UNINSTALL
@@ -114,12 +146,23 @@ Problem: Sites still accessible after install
 
 Problem: Can't add/remove sites in manager
   → You need the admin password
-  → Default is: ParentAdmin123
+  → Password: n0Zone2017 (hardcoded, cannot be changed)
+  → Same password for all admin functions (add, remove, whitelist)
+
+Problem: A legitimate site is blocked (e.g., Reddit)
+  → Use the GUI to whitelist it
+  → Open "Parental Control" from Desktop
+  → Go to "Active Blocks" tab → click "Whitelist Domain"
+  → Enter the domain and admin password
+  → The domain will be allowed even if it matches keywords
+  → Whitelist is saved and persistent
 
 Problem: Want to temporarily disable blocking
   → Open Services (services.msc)
-  → Find "Parental Control Service"
-  → Stop it (requires admin password)
-  → Start it again when needed
+  → Find "ParentalControlService"
+  → Stop it (requires admin access)
+  → Note: This is not recommended for production use
+  → Start it again when needed (double-click → Start)
+  → Service will auto-start on next reboot unless disabled
 
 =====================================================
