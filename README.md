@@ -4,7 +4,7 @@
 
 # 🛡️ Parental Control Tool
 
-A lightweight, robust Windows-native security application designed to monitor and restrict access to inappropriate online content. It operates silently as a background service, utilizing a multi-layered defense strategy—including DNS enforcement, system hosts file management, and active process monitoring—to ensure a safe digital environment.
+A lightweight, robust Windows-native security application designed to monitor and restrict access to inappropriate online content. It operates silently as a background service, utilizing a multi-layered defense strategy—including hosts file management, HTTP proxy interception, browser extension blocking, and process monitoring—optimized for office environments.
 
 ## ⚠️ Disclaimer
 
@@ -23,7 +23,7 @@ The Active Blocks tab showing monitored domains
 
   * **Multi-Layered Blocking:** Combines a hardcoded list of 60+ adult, gambling, and violence-related domains with keyword-based filtering, plus 20+ torrent sites.
   * **Video File Blocking:** Blocks all video formats (.mp4, .mkv, .avi, .mov, .flv, .webm, and 35+ more) via HTTP proxy interception and network packet inspection.
-  * **DNS Enforcement:** Automatically locks system DNS settings to **Cloudflare for Families (1.1.1.3)** to filter out malware and adult content.
+  * **Hosts File Protection:** Rewrites the system hosts file every 30 seconds to block domains—prevents bypass attempts like editing hosts file or changing DNS.
   * **Browser Extension Blocking:** Disables all extensions in Chrome, Edge, Firefox, Opera, Brave, and Vivaldi—new installations blocked via Group Policy.
   * **Bypass Prevention:** Continuously monitors and terminates processes for VPNs, proxy tools, and specialized browsers (like Tor or Brave) that could circumvent filters.
   * **Persistent Service:** Runs as a **Windows Service 24/7**, re-enforcing the system hosts file every 30 seconds and HTTP proxy every 60 seconds.

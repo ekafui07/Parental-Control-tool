@@ -42,7 +42,7 @@ ADMIN PASSWORD
 WHAT GETS BLOCKED AUTOMATICALLY
 =====================================================
 
-WEBSITES:
+WEBSITES (Hosts File + Keyword Filtering):
 • 60+ major adult content websites (Pornhub, xVideos, etc.)
 • Live cam sites (Chaturbate, LiveJasmin, etc.)
 • OnlyFans and similar subscription sites
@@ -54,7 +54,7 @@ WEBSITES:
 • ANY site whose domain contains keywords like:
   porn, xxx, sex, nude, adult, cam, hentai, nsfw, torrent, etc.
 
-VIDEO FILES (all formats blocked):
+VIDEO FILES (HTTP Proxy Interception):
 • .mp4, .mkv, .avi, .mov, .flv, .wmv, .webm
 • .3gp, .m4v, .m4a, .mpa, .mpeg, .mpg, .ts
 • And 30+ other video/movie formats
@@ -63,6 +63,16 @@ BROWSER EXTENSIONS:
 • All extensions disabled in Chrome, Edge, Firefox, Opera, Brave
 • New extensions cannot be installed (blocked by policy)
 • Prevents bypass extensions from working
+
+BYPASS PREVENTION:
+• VPN processes (ProtonVPN, NordVPN, ExpressVPN, etc.)
+• Tor Browser and Brave Browser
+• Proxy tools (Psiphon, UltraSurf, Lantern, etc.)
+• Shadowsocks, V2Ray, Clash, and other tunneling tools
+
+DNS ENFORCEMENT:
+• Disabled for office environment
+• Blocking handled by hosts file + keyword filtering
 
 =====================================================
 HOW IT BLOCKS

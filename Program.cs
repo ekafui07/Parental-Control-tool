@@ -731,66 +731,19 @@ namespace ParentalControl
     }
 
     // ============================================
-    // DNS ENFORCER - Layer 1 upgrade
-    // Locks DNS to Cloudflare for Families (1.1.1.3)
+    // DNS ENFORCER - Layer 1 (DISABLED FOR OFFICE USE)
+    // Kept for compatibility but does not modify DNS
     // ============================================
     public static class DnsEnforcer
     {
-        // Cloudflare for Families — blocks malware + adult content
-        private static readonly string[] SafeDnsServers = { "1.1.1.3", "1.0.0.3" };
-
         public static void EnforceDns()
         {
-            try
-            {
-                foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
-                {
-                    if (nic.OperationalStatus != OperationalStatus.Up) continue;
-                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-
-                    SetDnsViaRegistry(nic.Id);
-                }
-            }
-            catch (Exception ex)
-            {
-                AuditLogger.Log($"DNS enforcement error: {ex.Message}", EventLogEntryType.Error);
-            }
-        }
-
-        private static void SetDnsViaRegistry(string nicId)
-        {
-            // IPv4
-            var keyPath = $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{nicId}";
-            using var key = Registry.LocalMachine.OpenSubKey(keyPath, writable: true);
-            if (key == null) return;
-
-            var current = key.GetValue("NameServer") as string ?? "";
-            var desired = string.Join(",", SafeDnsServers);
-
-            if (current != desired)
-            {
-                key.SetValue("NameServer", desired);
-                AuditLogger.Log($"DNS locked to Cloudflare for Families on adapter {nicId}");
-            }
+            // DNS enforcement disabled for office environment
+            // Blocking is handled by hosts file + keyword filtering
         }
 
         public static bool IsDnsEnforced()
         {
-            try
-            {
-                foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
-                {
-                    if (nic.OperationalStatus != OperationalStatus.Up) continue;
-                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-
-                    var props = nic.GetIPProperties();
-                    foreach (var dns in props.DnsAddresses)
-                    {
-                        if (SafeDnsServers.Contains(dns.ToString())) return true;
-                    }
-                }
-            }
-            catch { }
             return false;
         }
     }
@@ -1018,12 +971,14 @@ namespace ParentalControl
         };
 
         private static HashSet<string> CustomBlocks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static HashSet<string> Whitelist = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private static readonly string DataDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
             "ParentalControl");
 
         private static readonly string CustomBlocksFile;
+        private static readonly string WhitelistFile;
         private static readonly string PasswordFile;
 
         private static string AdminPasswordHash;
@@ -1031,17 +986,22 @@ namespace ParentalControl
         static BlockingEngine()
         {
             CustomBlocksFile = Path.Combine(DataDir, "custom_blocks.txt");
+            WhitelistFile    = Path.Combine(DataDir, "whitelist.txt");
             PasswordFile     = Path.Combine(DataDir, "admin.pwd");
             
             // Hardcoded admin password - cannot be changed
             AdminPasswordHash = HashPassword("n0Zone2017");
 
             LoadCustomBlocks();
+            LoadWhitelist();
         }
 
         public static bool IsBlocked(string domain)
         {
             domain = domain.ToLower().Trim();
+
+            // Whitelist check - if in whitelist, always allow
+            if (Whitelist.Contains(domain)) return false;
 
             if (HardcodedBlocks.Contains(domain)) return true;
             if (CustomBlocks.Contains(domain)) return true;
@@ -1071,6 +1031,25 @@ namespace ParentalControl
             if (CustomBlocks.Remove(domain)) { SaveCustomBlocks(); return true; }
             return false;
         }
+
+        public static bool AddWhitelistDomain(string domain, string password)
+        {
+            if (!VerifyPassword(password)) return false;
+            domain = domain.ToLower().Trim();
+            if (Whitelist.Add(domain)) { SaveWhitelist(); return true; }
+            return false;
+        }
+
+        public static bool RemoveWhitelistDomain(string domain, string password)
+        {
+            if (!VerifyPassword(password)) return false;
+            domain = domain.ToLower().Trim();
+            if (Whitelist.Remove(domain)) { SaveWhitelist(); return true; }
+            return false;
+        }
+
+        public static IEnumerable<string> GetWhitelistedDomains()
+            => Whitelist.OrderBy(x => x);
 
         public static bool VerifyPassword(string password)
             => HashPassword(password) == AdminPasswordHash;
@@ -1102,6 +1081,30 @@ namespace ParentalControl
             {
                 Directory.CreateDirectory(DataDir);
                 File.WriteAllLines(CustomBlocksFile, CustomBlocks);
+            }
+            catch { }
+        }
+
+        private static void LoadWhitelist()
+        {
+            try
+            {
+                if (File.Exists(WhitelistFile))
+                    foreach (var line in File.ReadAllLines(WhitelistFile))
+                    {
+                        var d = line.Trim();
+                        if (!string.IsNullOrEmpty(d)) Whitelist.Add(d);
+                    }
+            }
+            catch { }
+        }
+
+        private static void SaveWhitelist()
+        {
+            try
+            {
+                Directory.CreateDirectory(DataDir);
+                File.WriteAllLines(WhitelistFile, Whitelist);
             }
             catch { }
         }
@@ -1295,13 +1298,10 @@ namespace ParentalControl
             {
                 Location = new Point(20, 55),
                 Size = new Size(680, 22),
-                Font = new Font("Segoe UI", 9)
+                Font = new Font("Segoe UI", 9),
+                Text = "ℹ️ DNS: Disabled for office use (hosts file blocking active)",
+                ForeColor = Color.Blue
             };
-            bool dnsOk = DnsEnforcer.IsDnsEnforced();
-            dnsLabel.Text = dnsOk
-                ? "✅ DNS: Locked to Cloudflare for Families (1.1.1.3)"
-                : "⚠️ DNS: Not enforced — click 'Force Re-Enforce' below";
-            dnsLabel.ForeColor = dnsOk ? Color.Green : Color.OrangeRed;
             tab.Controls.Add(dnsLabel);
 
             // Proxy status
