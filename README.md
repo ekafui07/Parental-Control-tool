@@ -1,99 +1,91 @@
-
-
------
-
 # 🛡️ Parental Control Tool
 
-A lightweight, robust Windows-native security application designed to monitor and restrict access to inappropriate online content. It operates silently as a background service, utilizing a multi-layered defense strategy—including hosts file management, HTTP proxy interception, browser extension blocking, and process monitoring—optimized for office environments.
+A lightweight, robust Windows-native security application designed to monitor and restrict access to inappropriate online content. It runs silently as a background service, using a multi-layered defense strategy — hosts file management, HTTP proxy interception, browser extension blocking, and process monitoring — optimized for office environments.
 
 ## ⚠️ Disclaimer
 
 **Legal and Ethical Use:** This software is provided "as-is" and is intended *strictly* for parents or legal guardians monitoring minor children on devices they legally own and control.
 
------
+---
+
+## Table of Contents
+
+- [Screenshots](#-screenshots)
+- [Key Features](#-key-features)
+- [Prerequisites](#️-prerequisites)
+- [Installation](#-installation)
+- [Configuration & Usage](#️-configuration--usage)
+- [Uninstallation](#️-uninstallation)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
 
 ## 📸 Screenshots
 
-> (assets/active_block_list.png)
-The Active Blocks tab showing monitored domains
-
------
+![Active Blocks tab showing monitored domains](assets/active_block_list.png)
 
 ## 🚀 Key Features
 
-  * **Multi-Layered Blocking:** Combines a hardcoded list of 60+ adult, gambling, and violence-related domains with keyword-based filtering, plus 20+ torrent sites.
-  * **Video File Blocking:** Blocks all video formats (.mp4, .mkv, .avi, .mov, .flv, .webm, and 35+ more) via HTTP proxy interception and network packet inspection.
-  * **Hosts File Protection:** Rewrites the system hosts file every 30 seconds to block domains—prevents bypass attempts like editing hosts file or changing DNS.
-  * **Browser Extension Blocking:** Disables all extensions in Chrome, Edge, Firefox, Opera, Brave, and Vivaldi—new installations blocked via Group Policy.
-  * **Bypass Prevention:** Continuously monitors and terminates processes for VPNs, proxy tools, and specialized browsers (like Tor or Brave) that could circumvent filters.
-  * **Persistent Service:** Runs as a **Windows Service 24/7**, re-enforcing the system hosts file every 30 seconds and HTTP proxy every 60 seconds.
-  * **Administrative Control:** Includes a Management GUI that requires a password to add custom blocks, remove blocks, or monitor protection status.
-  * **Audit Logging:** Tracks blocked attempts and bypass activities directly in the **Windows Event Log**.
-
------
+| Feature | Description |
+|---|---|
+| Multi-layered blocking | Hardcoded list of 60+ adult, gambling, and violence-related domains, plus 20+ torrent sites, with keyword-based filtering |
+| Video file blocking | Blocks all video formats (`.mp4`, `.mkv`, `.avi`, `.mov`, `.flv`, `.webm`, and 35+ more) via HTTP proxy interception and packet inspection |
+| Hosts file protection | Rewrites the system hosts file every 30 seconds — prevents bypass via manual hosts edits or DNS changes |
+| Browser extension blocking | Disables all extensions in Chrome, Edge, Firefox, Opera, Brave, and Vivaldi; new installs blocked via Group Policy |
+| Bypass prevention | Continuously monitors and terminates VPN, proxy, and specialized browser processes (e.g. Tor, Brave) |
+| Persistent service | Runs as a Windows Service 24/7 — re-enforces hosts file every 30s and HTTP proxy every 60s |
+| Administrative control | Password-protected Management GUI for adding/removing custom blocks and monitoring status |
+| Audit logging | Tracks blocked attempts and bypass activity in the Windows Event Log |
 
 ## ⚙️ Prerequisites
 
-Before installing, ensure your system meets the following requirements:
-
-  * **OS:** Windows 10 or Windows 11
-  * **Framework:** [.NET 8.0 SDK](Ensure you install the SDK, not just the Runtime) Download Link: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.419-windows-x64-installer
-  * **Permissions:** Administrator privileges are strictly required.
-
-
------
+- **OS:** Windows 10 or Windows 11
+- **Framework:** [.NET 8.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-8.0.419-windows-x64-installer) (install the SDK, not just the Runtime)
+- **Permissions:** Administrator privileges are strictly required
 
 ## 📥 Installation
 
-1.  Clone or download this repository to your local machine.
-2.  Navigate to the extracted folder.
-3.  Right-click on `INSTALL.bat` and select **Run as Administrator**.
-4.  Wait for the PowerShell script to build and install the service. You will see green `[OK]` messages upon success.
-5.  A "Parental Control" shortcut will automatically appear on your Desktop.
+1. Clone or download this repository to your local machine
+2. Navigate to the extracted folder
+3. Right-click `INSTALL.bat` and select **Run as Administrator**
+4. Wait for the PowerShell script to build and install the service — green `[OK]` messages indicate success
+5. A "Parental Control" shortcut will automatically appear on your Desktop
 
-> **Note:** If the installer stops or shows red `[FAILED]` messages, check the `install.log` file generated in the root directory. Common issues include missing the .NET 8 SDK or interference from Antivirus software.
+> **Note:** If the installer stops or shows red `[FAILED]` messages, check `install.log` in the root directory. Common causes: missing .NET 8 SDK or antivirus interference.
 
------
+## 🖥️ Configuration & Usage
 
-## 🖥️ Initial Configuration & Usage
+Once installed, blocking begins immediately.
 
-Once installed, the blocking begins immediately. To manage the settings:
+1. Open the **Parental Control** app from your Desktop shortcut
+2. Sign in with the admin password (set in the source — see `Program.cs`)
+3. Use the GUI to:
+   - Monitor live protection status (DNS, Proxy, Extensions, VPN blocking)
+   - View recent audit log entries
+   - Add or remove custom domain blocks (requires password)
+   - Force re-enforce all protections
 
-1.  Open the **Parental Control** app from your Desktop shortcut.
-2.  **Admin Password:** `n0Zone2017` (hardcoded, cannot be changed)
-3.  Use the GUI to:
-      * Monitor live protection status (DNS, Proxy, Extensions, VPN blocking)
-      * View recent audit log entries
-      * Add custom domain blocks (requires password)
-      * Remove custom blocks (requires password)
-      * Force re-enforce all protections
-
-From the GUI, you can monitor live protection status, view audit logs, and manually add or remove custom domain blocks.
-
------
+> ⚠️ **Security note:** The admin password is currently hardcoded in the source. If this repo is public, treat that password as compromised — rotate it in the code and avoid committing credentials in plain text going forward (consider an environment variable or a hashed/config-based check instead).
 
 ## 🛡️ Uninstallation
 
-To completely remove the background service and all blocking rules:
+1. Navigate to the repository folder
+2. Right-click `UNINSTALL.bat` and select **Run as Administrator**
+3. Confirm any prompts
 
-1.  Navigate to the repository folder.
-2.  Right-click `UNINSTALL.bat` and select **Run as Administrator**.
-3.  Confirm any prompts.
-
------
+This removes the background service and all blocking rules.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome\!
+Contributions, issues, and feature requests are welcome!
 
-1.  Fork the repository.
-2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  Push to the branch (`git push origin feature/AmazingFeature`).
-5.  Open a Pull Request.
-
------
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for details.
